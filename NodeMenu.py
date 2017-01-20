@@ -190,30 +190,30 @@ if __name__ == '__main__':
     # Erstellen einer neuen FIFO Queue
     #__que__ = queue.Queue()
 
-    __command__ = [
-        "python", "receiving_socket.py", "-host", __searchnode__.host, "-port",
-        str(__searchnode__.port)
-    ]
-
-    #__subprocess__ = subprocess.Popen(__command__, shell=True).wait()
-    Popen(__command__, creationflags=CREATE_NEW_CONSOLE)
-
     for neighbor in __searchNeighbors__:
+        command = [
+            "python", "receiving_socket.py", "-host", __searchnode__.host,
+            "-port", str(__searchnode__.port)
+        ]
+
+        #__subprocess__ = subprocess.Popen(__command__, shell=True).wait()
+        Popen(command, creationflags=CREATE_NEW_CONSOLE).wait()
+
         rec_command = [
             "python", "receiving_socket.py", "-host", neighbor.host, "-port",
             str(neighbor.port), "-senderhost", (__searchnode__.host),
             "-senderport", str(__searchnode__.port)
         ]
-        Popen(rec_command, creationflags=CREATE_NEW_CONSOLE)
+        Popen(rec_command, creationflags=CREATE_NEW_CONSOLE).wait()
 
-        time.sleep(5)
+        time.sleep(4)
 
         send_command = [
             "python", "sending_socket.py", "-host", neighbor.host, "-port",
             str(neighbor.port), "-message",
             str("Mode: - NodeTyp: - Text: - Sender: -")
         ]
-        Popen(send_command, creationflags=CREATE_NEW_CONSOLE)
+        Popen(send_command, creationflags=CREATE_NEW_CONSOLE).wait()
 """
         mltpro.set_start_method('spawn')
         queue = mltpro.Queue()
