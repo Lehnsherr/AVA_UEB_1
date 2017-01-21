@@ -1,25 +1,25 @@
 """
-Created on Mon Nov 14 15:50:45 2016
-
-@author: Joris Seyler 3603466
+Author: JSeyler 3603466
+Date: 2017-01-21 18:48:44
+Last Modified by:   JSeyler 3603466
+Last Modified time: 2017-01-21 18:48:44
 """
+
 import argparse
 import re
 import random
-import queue
-import threading
-import os
 import time
 
-import multiprocessing as mltpro
+#import os
+#import multiprocessing as mltpro
+
+from subprocess import Popen, PIPE, CREATE_NEW_CONSOLE
+from threading import Thread
+from queue import Queue, Empty
+from node import Node
 
 #from connection import *
-from GobalFunctions import get_current_time
-from sending_socket import create_sending_socket
-
-from subprocess import Popen, CREATE_NEW_CONSOLE
-
-from node import Node
+#from GobalFunctions import get_current_time
 
 
 def get_node_list_from_file(nodefile):
@@ -129,6 +129,33 @@ def print_node_neighbors(neighbor_list):
 
 
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
+# Watching both stdout and stderr
+##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
+def stream_watcher(identifier, stream):
+    """ doc string stream_watcher """
+    for line in stream:
+        __que__.put((identifier, line))
+
+    if not stream.closed:
+        stream.close()
+
+
+def printer():
+    """ doc string printer """
+    while True:
+        try:
+            # Block for 1 second.
+            item = __que__.get(True, 1)
+        except Empty:
+            # No output in either streams for a second. Are we done?
+            if proc_overseersock_sock.poll() is not None:
+                break
+        else:
+            identifier, line = item
+            print("Pribter " + str(identifier) + ':' + str(line))
+
+
+##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 # Kommandozeilen-Args
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 
@@ -188,23 +215,41 @@ if __name__ == '__main__':
 
     print("\n ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##")
     # Erstellen einer neuen FIFO Queue
-    #__que__ = queue.Queue()
+    __que__ = Queue()
 
     for neighbor in __searchNeighbors__:
         command = [
-            "python", "receiving_socket.py", "-host", __searchnode__.host,
+            "python", "overseer_rec_socket.py", "-host", __searchnode__.host,
             "-port", str(__searchnode__.port)
         ]
 
         #__subprocess__ = subprocess.Popen(__command__, shell=True).wait()
-        Popen(command, creationflags=CREATE_NEW_CONSOLE).wait()
+        proc_overseersock_sock = Popen(
+            command,
+            stdout=PIPE,
+            stderr=PIPE,
+            creationflags=CREATE_NEW_CONSOLE)
+        proc_overseersock_sock.wait()
+        print("proc_overseersock_sock Returncode: " + str(proc_overseersock_sock.returncode))
+
+        Thread(
+            target=stream_watcher,
+            name='stdout-watcher',
+            args=('STDOUT', proc_overseersock_sock.stdout)).start()
+        Thread(
+            target=stream_watcher,
+            name='stderr-watcher',
+            args=('STDERR', proc_overseersock_sock.stderr)).start()
 
         rec_command = [
             "python", "receiving_socket.py", "-host", neighbor.host, "-port",
             str(neighbor.port), "-senderhost", (__searchnode__.host),
             "-senderport", str(__searchnode__.port)
         ]
-        Popen(rec_command, creationflags=CREATE_NEW_CONSOLE).wait()
+        proc_rec_neigbor_sock = Popen(
+            rec_command, creationflags=CREATE_NEW_CONSOLE)
+        proc_rec_neigbor_sock.wait()
+        print(proc_rec_neigbor_sock.returncode)
 
         time.sleep(4)
 
@@ -214,6 +259,8 @@ if __name__ == '__main__':
             str("Mode: - NodeTyp: - Text: - Sender: -")
         ]
         Popen(send_command, creationflags=CREATE_NEW_CONSOLE).wait()
+
+    Thread(target=printer, name='printer').start()
 """
         mltpro.set_start_method('spawn')
         queue = mltpro.Queue()

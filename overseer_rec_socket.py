@@ -8,31 +8,35 @@ Last Modified time: 2017-01-21 18:48:44
 import socket
 import argparse
 
-def create_sending_socket(host, port, msg):
-    """ DocString """
-    print("!!! ___ create_sending_socket ___ !!!")
+
+def create_receiving_socket(host, port):
+    """ Docstring """
+    print("!!! ___ create_overseer_rec_socket ___ !!!")
     udp_ip = str(host)
     upd_port = int(port)
-    upd_msg = str(msg)
-
-    print("UDP target IP:", udp_ip)
-    print("UDP target port:", upd_port)
-    print("message:", upd_msg)
 
     sock = socket.socket(
         socket.AF_INET,  # Internet
         socket.SOCK_DGRAM)  # UDP
+    sock.bind((udp_ip, upd_port))
+    print(str(sock))
+    while True:
+        try:
+            # buffer size is 1024 bytes
+            data, addr = sock.recvfrom(1024).decode()
+            upd_msg = ("received message:" + data)
+            print("addr" + str(addr))
+            print(upd_msg)
 
-    sock.sendto(upd_msg.encode(), (udp_ip, upd_port))
-    print(upd_msg + udp_ip + str(upd_port))
+        except socket.timeout:
+            pass
 
 
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 # Kommandozeilen-Args
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 
-__parser__ = argparse.ArgumentParser(
-    description="SendSocket erstellen")
+__parser__ = argparse.ArgumentParser(description="EchoSocket erstellen")
 
 __parser__.add_argument(
     "-host",
@@ -46,12 +50,6 @@ __parser__.add_argument(
     type=str,
     required=True,
     help="Port: zu verbindender Port der IP")
-__parser__.add_argument(
-    "-message",
-    "--message",
-    type=str,
-    required=True,
-    help="Message: Nachricht die gesendet werden soll")
 
 # Parsen der Kommandozeilen-Args
 if __name__ == '__main__':
@@ -59,10 +57,8 @@ if __name__ == '__main__':
 
     __host__ = __args__.host
     __port__ = __args__.port
-    __msg__ = __args__.message
 
     print(__host__)
     print(__port__)
-    print(__msg__)
 
-    create_sending_socket(__host__, __port__, __msg__)
+    create_receiving_socket(__host__, __port__)

@@ -1,12 +1,13 @@
 """
-Created on Mon Nov 18 14:51:16 2016
-
-@author: Joris Seyler 3603466
+Author: JSeyler 3603466
+Date: 2017-01-21 18:48:44
+Last Modified by:   JSeyler 3603466
+Last Modified time: 2017-01-21 18:48:44
 """
 
 import socket
 import argparse
-import queue
+#import queue
 
 
 def create_receiving_socket(host, port, shost, sport):
@@ -82,7 +83,5 @@ if __name__ == '__main__':
     print(__senderhost__)
     print(__senderport__)
 
-
     create_receiving_socket(__host__, __port__, __senderhost__, __senderport__)
-
-    input("prompt: ")
+    #input("prompt: ")
