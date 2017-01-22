@@ -9,15 +9,17 @@ import socket
 import argparse
 
 
-def create_receiving_socket(host, port):
+def overseer_rec_socket(host, port):
     """ Docstring """
-    print("!!! ___ create_overseer_rec_socket ___ !!!")
     udp_ip = str(host)
     upd_port = int(port)
 
     sock = socket.socket(
         socket.AF_INET,  # Internet
         socket.SOCK_DGRAM)  # UDP
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    print(udp_ip)
+    print(upd_port)
     sock.bind((udp_ip, upd_port))
     print(str(sock))
     while True:
@@ -53,6 +55,7 @@ __parser__.add_argument(
 
 # Parsen der Kommandozeilen-Args
 if __name__ == '__main__':
+    print("!!! ___ create_overseer_rec_socket ___ !!!")
     __args__ = __parser__.parse_args()
 
     __host__ = __args__.host
@@ -61,4 +64,4 @@ if __name__ == '__main__':
     print(__host__)
     print(__port__)
 
-    create_receiving_socket(__host__, __port__)
+    overseer_rec_socket(__host__, __port__)

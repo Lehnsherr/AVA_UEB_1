@@ -12,7 +12,6 @@ import argparse
 
 def create_receiving_socket(host, port, shost, sport):
     """ Docstring """
-    print("!!! ___ create_receiving_socket ___ !!!")
     udp_ip = str(host)
     upd_port = int(port)
 
@@ -71,6 +70,7 @@ __parser__.add_argument(
 
 # Parsen der Kommandozeilen-Args
 if __name__ == '__main__':
+    print("!!! ___ create_receiving_socket ___ !!!")
     __args__ = __parser__.parse_args()
 
     __host__ = __args__.host

@@ -10,7 +10,6 @@ import argparse
 
 def create_sending_socket(host, port, msg):
     """ DocString """
-    print("!!! ___ create_sending_socket ___ !!!")
     udp_ip = str(host)
     upd_port = int(port)
     upd_msg = str(msg)
@@ -55,6 +54,7 @@ __parser__.add_argument(
 
 # Parsen der Kommandozeilen-Args
 if __name__ == '__main__':
+    print("!!! ___ create_sending_socket ___ !!!")
     __args__ = __parser__.parse_args()
 
     __host__ = __args__.host
