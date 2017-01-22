@@ -17,16 +17,18 @@ def overseer_rec_socket(host, port):
     sock = socket.socket(
         socket.AF_INET,  # Internet
         socket.SOCK_DGRAM)  # UDP
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    print(udp_ip)
-    print(upd_port)
+    #sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    #print(udp_ip)
+    #print(upd_port)
     sock.bind((udp_ip, upd_port))
-    print(str(sock))
+    #print(str(sock))
     while True:
         try:
             # buffer size is 1024 bytes
-            data, addr = sock.recvfrom(1024).decode()
-            upd_msg = ("received message:" + data)
+            data, addr = sock.recvfrom(1024)
+            print("DAFUQ")
+            msg = data.decode()
+            upd_msg = ("received message:" + msg)
             print("addr" + str(addr))
             print(upd_msg)
 
@@ -61,7 +63,7 @@ if __name__ == '__main__':
     __host__ = __args__.host
     __port__ = __args__.port
 
-    print(__host__)
-    print(__port__)
+    #print(__host__)
+    #print(__port__)
 
     overseer_rec_socket(__host__, __port__)

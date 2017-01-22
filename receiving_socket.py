@@ -7,13 +7,16 @@ Last Modified time: 2017-01-21 18:48:44
 
 import socket
 import argparse
+
 #import queue
 
 
-def create_receiving_socket(host, port, shost, sport):
+def create_receiving_socket(host, port, s_host, s_port):
     """ Docstring """
     udp_ip = str(host)
     upd_port = int(port)
+    p_ip = str(s_host)
+    p_port = int(s_port)
 
     sock = socket.socket(
         socket.AF_INET,  # Internet
@@ -21,20 +24,18 @@ def create_receiving_socket(host, port, shost, sport):
     sock.bind((udp_ip, upd_port))
     print(str(sock))
     while True:
-        try:
-            data, addr = sock.recvfrom(
-                1024).decode()  # buffer size is 1024 bytes
-            upd_msg = ("received message:" + data)
-            print("addr" + str(addr))
+        data, addr = sock.recvfrom(1024)
+        msg = data.decode()
+        upd_msg = ("received message:" + msg)
+        print(upd_msg)
+        print("addr" + str(addr))
 
-            #set back to P
-            sock = socket.socket(
-                socket.AF_INET,  # Internet
-                socket.SOCK_DGRAM)  # UDP
+        #set back to P
+        sock = socket.socket(
+            socket.AF_INET,  # Internet
+            socket.SOCK_DGRAM)  # UDP
 
-            sock.sendto(upd_msg.encode(), (shost, sport))
-        except socket.timeout:
-            pass
+        sock.sendto(upd_msg.encode(), (p_ip, p_port))
 
 
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
@@ -56,13 +57,13 @@ __parser__.add_argument(
     required=True,
     help="Port: zu verbindender Port der IP")
 __parser__.add_argument(
-    "-sq",
+    "-senderhost",
     "--senderhost",
     type=str,
     required=True,
     help="sender: Ip des Senders")
 __parser__.add_argument(
-    "-sh",
+    "-senderport",
     "--senderport",
     type=str,
     required=True,
@@ -75,13 +76,13 @@ if __name__ == '__main__':
 
     __host__ = __args__.host
     __port__ = __args__.port
-    __senderhost__ = __args__.sender
-    __senderport__ = __args__.sender
+    __senderhost__ = __args__.senderhost
+    __senderport__ = __args__.senderport
 
-    print(__host__)
-    print(__port__)
-    print(__senderhost__)
-    print(__senderport__)
+    #print(__host__)
+    #print(__port__)
+    #print(__senderhost__)
+    #print(__senderport__)
 
     create_receiving_socket(__host__, __port__, __senderhost__, __senderport__)
     #input("prompt: ")

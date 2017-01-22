@@ -14,9 +14,9 @@ def create_sending_socket(host, port, msg):
     upd_port = int(port)
     upd_msg = str(msg)
 
-    print("UDP target IP:", udp_ip)
-    print("UDP target port:", upd_port)
-    print("message:", upd_msg)
+    #print("UDP target IP:", udp_ip)
+    #print("UDP target port:", upd_port)
+    #print("message:", upd_msg)
 
     sock = socket.socket(
         socket.AF_INET,  # Internet
@@ -61,8 +61,8 @@ if __name__ == '__main__':
     __port__ = __args__.port
     __msg__ = __args__.message
 
-    print(__host__)
-    print(__port__)
-    print(__msg__)
+    #print(__host__)
+    #print(__port__)
+    #print(__msg__)
 
     create_sending_socket(__host__, __port__, __msg__)

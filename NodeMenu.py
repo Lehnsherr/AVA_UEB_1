@@ -133,18 +133,19 @@ def print_node_neighbors(neighbor_list):
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 def stream_watcher(identifier, stream):
     """ doc string stream_watcher """
-    print("stream_watcher started")
+    #print("stream_watcher started")
     for line in stream:
+        #print("line in stream")
         __que__.put((identifier, line))
 
     if not stream.closed:
-        print("Stream closed")
+        #print("Stream closed")
         stream.close()
 
 
 def printer():
     """ doc string printer """
-    print("printer started")
+    #print("printer started")
     while True:
         try:
             # Block for 1 second.
@@ -154,9 +155,67 @@ def printer():
             print("printer Empty")
             if __proc_overseersock_sock__.poll() is not None:
                 break
+            #if proc_rec_neigbor_sock.poll() is not None:
+            #    break
+            #if proc_rec_neigbor_sock.poll() is not None:
+            #    break
         else:
             identifier, line = item
-            print("Printer " + str(identifier) + ':' + str(line))
+            print(str(identifier) + ': ' + str(line.decode()))
+
+
+def open_subprocess(socketstype,
+                    host,
+                    port,
+                    msg="None",
+                    p_host="None",
+                    p_port=0):
+    """ Formatierung des Commandos
+        Wird in cmd geoeffnet
+        Startet 2 Thread die auf
+            STDOUT-STDERR und Ergebnisse lesen
+            und in eine Gemeinsame Queue umleiten
+    """
+    if socketstype == "send":
+        if msg != "None":
+            __command__ = [
+                "python", "sending_socket.py", "-host", host, "-port",
+                str(port), "-message",
+                str("Mode: - NodeTyp: - Text: - Sender: -")
+            ]
+    elif socketstype == "rec":
+        if p_host != "None" and p_port != "None":
+            __command__ = [
+                "python", "receiving_socket.py", "-host", host, "-port",
+                str(port), "-senderhost", (p_host), "-senderport", str(p_port)
+            ]
+    elif socketstype == "over":
+        __command__ = [
+            "python", "overseer_rec_socket.py", "-host", host, "-port",
+            str(port)
+        ]
+    else:
+        print("Alles KAPOTT")
+
+    __out_prefix__ = "STDOUT" + socketstype + ': '
+    __err_prefix__ = "STDERR" + socketstype + ': '
+
+    proc = Popen(
+        __command__,
+        stdout=PIPE,
+        stderr=PIPE,
+        creationflags=CREATE_NEW_CONSOLE)
+    print(socketstype + "Returncode: " + str(proc.returncode))
+    proc.wait()
+
+    Thread(
+        target=stream_watcher,
+        name='stdout-watcher',
+        args=(__out_prefix__, proc.stdout)).start()
+    Thread(
+        target=stream_watcher,
+        name='stderr-watcher',
+        args=(__err_prefix__, proc.stderr)).start()
 
 
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
@@ -194,6 +253,7 @@ __parser__.add_argument(
     help="Größe der maximalenm Gruechte-Grenzte")
 
 if __name__ == '__main__':
+    oversee_lives = False
     # Parsen der Kommandozeilen-Args
     __args__ = __parser__.parse_args()
 
@@ -221,28 +281,45 @@ if __name__ == '__main__':
     # Erstellen einer neuen FIFO Queue
     __que__ = Queue()
 
-    __command__ = [
-        "python", "overseer_rec_socket.py", "-host", __searchnode__.host,
-        "-port", str(__searchnode__.port)
-    ]
-
-    #__subprocess__ = subprocess.Popen(__command__, shell=True).wait()
-    __proc_overseersock_sock__ = Popen(
-        __command__, stdout=PIPE, stderr=PIPE, creationflags=CREATE_NEW_CONSOLE)
-    __proc_overseersock_sock__.wait()
-    print("proc_overseersock_sock Returncode: " + str(
-        __proc_overseersock_sock__.returncode))
-
-    Thread(
-        target=stream_watcher,
-        name='stdout-watcher',
-        args=('STDOUT', __proc_overseersock_sock__.stdout)).start()
-    Thread(
-        target=stream_watcher,
-        name='stderr-watcher',
-        args=('STDERR', __proc_overseersock_sock__.stderr)).start()
-
     for neighbor in __searchNeighbors__:
+        try:
+            __proc_overseersock_sock__
+            if __proc_overseersock_sock__.returncode is None:
+                oversee_lives = True
+            else:
+                oversee_lives = False
+        except NameError:
+            oversee_lives = False
+
+        print("Overseer: " + str(oversee_lives))
+        if oversee_lives is False:
+            __command__ = [
+                "python", "overseer_rec_socket.py", "-host",
+                __searchnode__.host, "-port", str(__searchnode__.port)
+            ]
+
+            #__subprocess__ = subprocess.Popen(__command__, shell=True).wait()
+            __proc_overseersock_sock__ = Popen(
+                __command__,
+                stdout=PIPE,
+                stderr=PIPE,
+                creationflags=CREATE_NEW_CONSOLE)
+            #__proc_overseersock_sock__.wait()
+            print("proc_overseersock_sock Returncode: " + str(
+                __proc_overseersock_sock__.returncode))
+
+            Thread(
+                target=stream_watcher,
+                name='stdout-watcher',
+                args=('STDOUT proc_overseersock_sock: ',
+                      __proc_overseersock_sock__.stdout)).start()
+            Thread(
+                target=stream_watcher,
+                name='stderr-watcher',
+                args=('STDERR proc_overseersock_sock: ',
+                      __proc_overseersock_sock__.stderr)).start()
+
+        time.sleep(3)
 
         rec_command = [
             "python", "receiving_socket.py", "-host", neighbor.host, "-port",
@@ -250,19 +327,49 @@ if __name__ == '__main__':
             "-senderport", str(__searchnode__.port)
         ]
         proc_rec_neigbor_sock = Popen(
-            rec_command, creationflags=CREATE_NEW_CONSOLE)
-        proc_rec_neigbor_sock.wait()
+            rec_command,
+            stdout=PIPE,
+            stderr=PIPE,
+            creationflags=CREATE_NEW_CONSOLE)
+        #proc_rec_neigbor_sock.wait()
         print("proc_rec_neigbor_sock Returncode: " + str(
             proc_rec_neigbor_sock.returncode))
+        Thread(
+            target=stream_watcher,
+            name='stdout-watcher',
+            args=('STDOUT proc_rec_neigbor_sock:',
+                  proc_rec_neigbor_sock.stdout)).start()
+        Thread(
+            target=stream_watcher,
+            name='stderr-watcher',
+            args=('STDERR proc_rec_neigbor_sock:',
+                  proc_rec_neigbor_sock.stderr)).start()
 
-        time.sleep(4)
+        time.sleep(3)
 
         send_command = [
             "python", "sending_socket.py", "-host", neighbor.host, "-port",
             str(neighbor.port), "-message",
             str("Mode: - NodeTyp: - Text: - Sender: -")
         ]
-        Popen(send_command, creationflags=CREATE_NEW_CONSOLE).wait()
+        proc_sending_socket = Popen(
+            send_command,
+            stdout=PIPE,
+            stderr=PIPE,
+            creationflags=CREATE_NEW_CONSOLE)
+        print("proc_sending_socket Returncode: " + str(
+            proc_sending_socket.returncode))
+        proc_sending_socket.wait()
+        Thread(
+            target=stream_watcher,
+            name='stdout-watcher',
+            args=('STDOUT proc_sending_socket: ',
+                  proc_sending_socket.stdout)).start()
+        Thread(
+            target=stream_watcher,
+            name='stderr-watcher',
+            args=('STDERR proc_sending_socket: ',
+                  proc_sending_socket.stderr)).start()
 
     Thread(target=printer, name='printer').start()
 """
