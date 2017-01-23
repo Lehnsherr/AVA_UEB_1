@@ -9,11 +9,11 @@ Last Modified time: 2017-01-23 10:43:34
 from GobalFunctions import get_current_time
 """
 class MessageMenu:
-    
-    Nimmt die versendeten Nachrichten auf,
-    testet ihren typ,
-    und sendet sie entsprechend weiter
-    
+
+Nimmt die versendeten Nachrichten auf,
+testet ihren typ,
+und sendet sie entsprechend weiter
+
 
     def __init__(self, neighbors, sender):
         self.neighbors = neighbors
@@ -55,48 +55,49 @@ def check_message_type(message):
         return "Exit"
 
 
-def spread_rumor(self, message):
+def spread_rumor(message, neighbors, rumorcounter):
     """
         Verbreitet ein Geruecht unter den verbleibenden Knoten
         """
+    spreadrumor = False
     currenttime = get_current_time()
 
-    self.rumorcounter += 1
+    rumorcounter += 1
     #Wer labert den
     print("-->" + str(currenttime) + " Geruecht erhalten von " +
           get_message_sender(message))
 
-    for neighbor in self.neighbors:
+    for neighbor in neighbors:
         print(neighbor.nid)
         print("Message Sender " + get_message_sender(message))
 
     #Wenn das Gerucht noch nicht bekannt
-    if not self.spreadrumor:
+    if not spreadrumor:
         #Ist Sender Nachbar
         sender = [
-            x for x in self.neighbors
-            if x.nid == int(get_message_sender(message))
+            x for x in neighbors if x.nid == int(get_message_sender(message))
         ]
         print(sender)
         if sender:
             #Sender aus Liste entfernen
-            if sender[0] in self.neighbors:
-                self.neighbors.remove(sender[0])
+            if sender[0] in neighbors:
+                neighbors.remove(sender[0])
 
             #Wenn noch Nachbarn in Listevorhanden sind
             #Weitere Geruchte versenden
-            if len(self.neighbors) >= 1:
+            if len(neighbors) >= 1:
                 #rumor = Message("app", "rumor", "Geruecht", self.sender[0])
                 #rumor.sendtoneighbornods(self.neighbors)
 
                 #Gerucht als bekannt ansehen
-                self.spreadrumor = True
+                spreadrumor = True
         #Wenn das Gerucht schon bekannt
         else:
             print("!!!" + str(currenttime) +
                   " Error: Geruecht wird nicht mehr weiter verbreitet")
 
-        return self.rumorcounter
+        return rumorcounter
+
 
 def get_message_type(message):
     """ return Typ einer uebergebenen Nachricht """
@@ -115,6 +116,10 @@ def get_message_sender(message):
     message_sender = find_between(message, 'Sender:', ',')
     return message_sender
 
+def get_message_text(message):
+    """ return Text einer uebergebenen Nachricht """
+    message_text = find_between(message, 'Text:', ',')
+    return message_text
 
 def find_between(findstr, first, last):
     """

@@ -10,46 +10,35 @@ import argparse
 
 from GobalFunctions import get_current_time
 
-def create_sending_socket(host, port, msg):
-    """ DocString """
+
+def create_sending_socket(recevier, msg):
+    """ Erstellt ein UDP Socket zum versenden von Nachrichten """
     currenttime = get_current_time()
 
+    nid, rec_ip, rec_port = recevier.split(":")
 
-    udp_ip = str(host)
-    upd_port = int(port)
     upd_msg = str(msg + ", Time:" + currenttime)
-
-    #print("UDP target IP:", udp_ip)
-    #print("UDP target port:", upd_port)
-    #print("message:", upd_msg)
 
     sock = socket.socket(
         socket.AF_INET,  # Internet
         socket.SOCK_DGRAM)  # UDP
 
-    sock.sendto(upd_msg.encode(), (udp_ip, upd_port))
-    print(upd_msg + udp_ip + str(upd_port))
-
+    sock.sendto(upd_msg.encode(), (rec_ip, int(rec_port)))
+    #print(upd_msg + udp_ip + str(upd_port))
 
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 # Kommandozeilen-Args
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 
-__parser__ = argparse.ArgumentParser(
-    description="SendSocket erstellen")
 
+__parser__ = argparse.ArgumentParser(description="SendSocket erstellen")
 __parser__.add_argument(
-    "-host",
-    "--host",
+    "-recevier",
+    "--recevier",
     type=str,
     required=True,
     help="Host: zu verbindende IP Addresse")
-__parser__.add_argument(
-    "-port",
-    "--port",
-    type=str,
-    required=True,
-    help="Port: zu verbindender Port der IP")
+
 __parser__.add_argument(
     "-message",
     "--message",
@@ -59,15 +48,9 @@ __parser__.add_argument(
 
 # Parsen der Kommandozeilen-Args
 if __name__ == '__main__':
-    print("!!! ___ create_sending_socket ___ !!!")
+    #print("!!! ___ create_sending_socket ___ !!!")
     __args__ = __parser__.parse_args()
-
-    __host__ = __args__.host
-    __port__ = __args__.port
+    __recevier__ = __args__.recevier
     __msg__ = __args__.message
 
-    #print(__host__)
-    #print(__port__)
-    #print(__msg__)
-
-    create_sending_socket(__host__, __port__, __msg__)
+    create_sending_socket(__recevier__, __msg__)

@@ -15,8 +15,11 @@ import os
 from subprocess import Popen, PIPE, CREATE_NEW_CONSOLE
 from threading import Thread
 from queue import Queue, Empty
-from node import Node
 
+from node import Node
+from MessageMenu import get_message_sender, get_message_text
+
+#from MessageMenu import MessageMenu
 #from connection import *
 #from GobalFunctions import get_current_time
 
@@ -153,7 +156,7 @@ def printer():
             # No output in either streams for a second. Are we done?
             print("printer Empty")
             #if __proc_overseersock_sock__.poll() is not None:
-                #break
+            #break
             #if proc_rec_neigbor_sock.poll() is not None:
             #    break
             #if proc_rec_neigbor_sock.poll() is not None:
@@ -162,63 +165,86 @@ def printer():
             identifier, line = item
             print(str(identifier) + ': ' + str(line.decode()))
             append_to_file("test-log.txt", item)
+            output_to_graphviz("graphiz.txt", identifier, line)
+
+
+def output_to_graphviz(filename, identifier, line):
+    """ Docstring """
+    #print("Test")
+    if "ERR" not in identifier:
+        #print("Test2")
+        if "rec" in identifier:
+            strline = line.decode()
+
+            if "received message:" in strline:
+                print("Test3")
+                sender = get_message_sender(strline)
+                text = get_message_text(strline)
+                with open(filename, 'a') as txtfile:
+                    txtfile.write(str(sender) + "--" + str(text) + '\n')
 
 
 def append_to_file(filename, item):
     """ Logging der Ergebniss aus Queue in tmp Datei """
-    #if os.stat(filename).st_size != 0:
-    #oeffnet Datei und leert sie
-    #open(filename, 'w').close()
-
     identifier, line = item
     with open(filename, 'a') as txtfile:
         txtfile.write(str(identifier) + ' ' + str(line.decode()))
 
 
-def open_subprocess(socketstype,
-                    host,
-                    port,
-                    msg="None",
-                    p_host="None",
-                    p_port=0):
-    """ 
-    Formatierung des Commandos
-    Wird in cmd geoeffnet
-    Startet 2 Thread die auf
-    STDOUT-STDERR und Ergebnisse lesen
-    und in eine Gemeinsame Queue umleiten
+def clear_log_file(filename):
+    """ Leer die Logdatei """
+    if os.stat(filename).st_size != 0:
+        #oeffnet Datei und leert sie
+        open(filename, 'w').close()
+
+
+def open_subprocess(socketstype, rec, sender=None, msg="None"):
     """
+        Formatierung des Commandos
+        Wird in cmd geoeffnet
+        Startet 2 Thread die auf
+        STDOUT-STDERR und Ergebnisse lesen
+        und in eine Gemeinsame Queue umleiten
+    """
+
     if socketstype == "send":
         if msg != "None":
-            send_msg = ("Mode:APP, NodeTyp:rumor, Text: -, Sender:" + str(msg))
+            send_msg = ("Mode:APP, NodeTyp:rumor, Text:" + str(rec.nid) +
+                        ", Sender:" + str(sender.nid))
+
             __command__ = [
-                "python", "sending_socket.py", "-host", host, "-port",
-                str(port), "-message", send_msg
+                "python", "sending_socket.py", "-rec",
+                (str(rec.nid) + ":" + rec.host + ":" + str(rec.port)),
+                "-message", send_msg
             ]
+
     elif socketstype == "rec":
-        if p_host != "None" and p_port != "None":
+        if rec != None or sender != None:
             __command__ = [
-                "python", "receiving_socket.py", "-host", host, "-port",
-                str(port), "-senderhost", (p_host), "-senderport", str(p_port)
+                "python", "receiving_socket.py", "-rec",
+                (str(rec.nid) + ":" + rec.host + ":" + str(rec.port)),
+                "-sender",
+                (str(sender.nid) + ":" + sender.host + ":" + str(sender.port))
             ]
     elif socketstype == "over":
         __command__ = [
-            "python", "overseer_rec_socket.py", "-host", host, "-port",
-            str(port)
+            "python", "overseer_rec_socket.py", "-rec",
+            (str(rec.nid) + ":" + rec.host + ":" + str(rec.port))
         ]
     else:
         print("Alles KAPOTT")
 
     __out_prefix__ = "STDOUT " + socketstype + ': '
     __err_prefix__ = "STDERR " + socketstype + ': '
-    print(__command__)
+
+    #print(__command__)
 
     proc = Popen(
         __command__,
         stdout=PIPE,
         stderr=PIPE,
         creationflags=CREATE_NEW_CONSOLE)
-    print(socketstype + "Returncode: " + str(proc.returncode))
+    #print(socketstype + "Returncode: " + str(proc.returncode))
     #proc.wait()
 
     Thread(
@@ -258,15 +284,17 @@ __parser__.add_argument(
     default=3,
     help="Anzahl der zufaellig gewaehlten Nachbarknoten")
 __parser__.add_argument(
-    "-c",
-    "--rumorCount",
+    "-it",
+    "--iterator",
     type=int,
     required=False,
     default=1,
     help="Größe der maximalenm Gruechte-Grenzte")
 
 if __name__ == '__main__':
-    oversee_lives = False
+    clear_log_file("test-log.txt")
+    clear_log_file("graphiz.txt")
+
     # Parsen der Kommandozeilen-Args
     __args__ = __parser__.parse_args()
 
@@ -295,118 +323,45 @@ if __name__ == '__main__':
     __que__ = Queue()
 
     for neighbor in __searchNeighbors__:
-        # Test auf undefined . Execept wird angeworden wenn Proces nicht mehr vorhanden
-        """
-        try:
-            __proc_overseersock_sock__
-            if __proc_overseersock_sock__.returncode == None:
-                oversee_lives = True
-            else:
-                oversee_lives = False
-        except NameError:
-            oversee_lives = False
 
-        #print("Overseer: " + str(oversee_lives))
-        if oversee_lives is False:
-            __command__ = [
-                "python", "overseer_rec_socket.py", "-host",
-                __searchnode__.host, "-port", str(__searchnode__.port)
-            ]
+        open_subprocess("over", __searchnode__)
+        time.sleep(1)
 
-            #__subprocess__ = subprocess.Popen(__command__, shell=True).wait()
-            __proc_overseersock_sock__ = Popen(
-                __command__,
-                stdout=PIPE,
-                stderr=PIPE,
-                creationflags=CREATE_NEW_CONSOLE)
-            #__proc_overseersock_sock__.wait()
-            print("proc_overseersock_sock Returncode: " + str(
-                __proc_overseersock_sock__.returncode))
+        open_subprocess("rec", neighbor, __searchnode__)
+        time.sleep(1)
 
-            Thread(
-                target=stream_watcher,
-                name='stdout-watcher',
-                args=('STDOUT proc_overseersock_sock:',
-                      __proc_overseersock_sock__.stdout)).start()
-            Thread(
-                target=stream_watcher,
-                name='stderr-watcher',
-                args=('STDERR proc_overseersock_sock:',
-                      __proc_overseersock_sock__.stderr)).start()
-        """
-        open_subprocess("over", __searchnode__.host, __searchnode__.port)
+        open_subprocess("send", neighbor, __searchnode__, "")
 
-        time.sleep(3)
-        #socketstype,host,port,msg="None",p_host="None",p_port=0
+        print("\n ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##")
+        if __args__.iterator == 2:
+            print_node(neighbor)
+            neighbor_neighbor = get_node_neighbor(__args__.neighborCount,
+                                                  __nodes__, neighbor)
+            print_node_neighbors(neighbor_neighbor)
+            for neighbor_2 in neighbor_neighbor:
+                open_subprocess("over", __searchnode__)
+                time.sleep(1)
 
-        open_subprocess("rec", neighbor.host, neighbor.port, "",
-                        __searchnode__.host, __searchnode__.port)
-        """
-        rec_command = [
-            "python", "receiving_socket.py", "-host", neighbor.host, "-port",
-            str(neighbor.port), "-senderhost", (__searchnode__.host),
-            "-senderport", str(__searchnode__.port)
-        ]
-        proc_rec_neigbor_sock = Popen(
-            rec_command,
-            stdout=PIPE,
-            stderr=PIPE,
-            creationflags=CREATE_NEW_CONSOLE)
-        #proc_rec_neigbor_sock.wait()
-        print("proc_rec_neigbor_sock Returncode: " + str(
-            proc_rec_neigbor_sock.returncode))
-        Thread(
-            target=stream_watcher,
-            name='stdout-watcher',
-            args=('STDOUT proc_rec_neigbor_sock:',
-                  proc_rec_neigbor_sock.stdout)).start()
-        Thread(
-            target=stream_watcher,
-            name='stderr-watcher',
-            args=('STDERR proc_rec_neigbor_sock:',
-                  proc_rec_neigbor_sock.stderr)).start()
+                open_subprocess("rec", neighbor_2, __searchnode__)
+                time.sleep(1)
 
-        """
+                open_subprocess("send", neighbor_2, neighbor, "")
+                print(
+                    "\n ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##"
+                )
+                if __args__.iterator == 3:
+                    print_node(neighbor_2)
+                    neighbor_neighbor_neighbor = get_node_neighbor(
+                        __args__.neighborCount, __nodes__, neighbor_2)
+                    print_node_neighbors(neighbor_neighbor_neighbor)
+                    for neighbor_3 in neighbor_neighbor_neighbor:
+                        open_subprocess("over", __searchnode__)
+                        time.sleep(1)
 
-        time.sleep(3)
-        open_subprocess("send", neighbor.host, neighbor.port, __searchnode__.nid,)
-        """
-        send_command = [
-            "python", "sending_socket.py", "-host", neighbor.host, "-port",
-            str(neighbor.port), "-message",
-            str("Mode:APP, NodeTyp:rumor,  Text:  Sender:" + str(neighbor.nid))
-        ]
-        proc_sending_socket = Popen(
-            send_command,
-            stdout=PIPE,
-            stderr=PIPE,
-            creationflags=CREATE_NEW_CONSOLE)
-        print("proc_sending_socket Returncode: " + str(
-            proc_sending_socket.returncode))
-        proc_sending_socket.wait()
-        Thread(
-            target=stream_watcher,
-            name='stdout-watcher',
-            args=('STDOUT proc_sending_socket: ',
-                  proc_sending_socket.stdout)).start()
-        Thread(
-            target=stream_watcher,
-            name='stderr-watcher',
-            args=('STDERR proc_sending_socket: ',
-                  proc_sending_socket.stderr)).start()
-        """
+                        open_subprocess("rec", neighbor_2, __searchnode__)
+                        time.sleep(1)
+
+                        open_subprocess("send", neighbor_2, neighbor, "")
+
     Thread(target=printer, name='printer').start()
-"""
-        mltpro.set_start_method('spawn')
-        queue = mltpro.Queue()
-        print("Ich bin in dir ... MAIN")
-
-        #queue = Queue()
-        p = mltpro.Process(
-            target=create_sending_socket(neighbor.host, neighbor.port),
-            args=(queue, 1))
-        p.start()
-        #p.join()  # this blocks until the process terminates
-        result = queue.get()
-        print("Result: " + result)
-"""
+    
