@@ -7,12 +7,15 @@ Last Modified time: 2017-01-21 18:48:44
 
 import socket
 import argparse
+import select
 
+from MessageMenu import check_message_type
 #import queue
 
 
 def create_receiving_socket(host, port, s_host, s_port):
     """ Docstring """
+    msg = None
     udp_ip = str(host)
     upd_port = int(port)
     p_ip = str(s_host)
@@ -23,20 +26,31 @@ def create_receiving_socket(host, port, s_host, s_port):
         socket.SOCK_DGRAM)  # UDP
     sock.bind((udp_ip, upd_port))
     print(str(sock))
-    while True:
+
+    sock.setblocking(0)
+    timeout_in_seconds = 10
+    ready = select.select([sock], [], [], timeout_in_seconds)
+    if ready[0]:
+
+        #while True:
         data, addr = sock.recvfrom(1024)
-        msg = data.decode()
-        upd_msg = ("received message:" + msg)
-        print(upd_msg)
+
+        upd_msg = data.decode()
+        msg = ("received message:" + upd_msg)
+        print(msg)
         print("addr" + str(addr))
+        message_type = check_message_type(msg)
+        if message_type == "spreadRumor":
+            print("test test ")
+            sock_p = socket.socket(
+                socket.AF_INET,  # Internet
+                socket.SOCK_DGRAM)  # UDP
 
-        #set back to P
-        sock = socket.socket(
-            socket.AF_INET,  # Internet
-            socket.SOCK_DGRAM)  # UDP
+            sock_p.sendto(msg.encode(), (p_ip, p_port))
 
-        sock.sendto(upd_msg.encode(), (p_ip, p_port))
-
+    #set back to P
+    if msg == "" or msg == None:
+        msg = "Error"
 
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 # Kommandozeilen-Args

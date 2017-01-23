@@ -7,6 +7,7 @@ Last Modified time: 2017-01-21 18:48:44
 
 import socket
 import argparse
+import select
 
 
 def overseer_rec_socket(host, port):
@@ -22,18 +23,21 @@ def overseer_rec_socket(host, port):
     #print(upd_port)
     sock.bind((udp_ip, upd_port))
     #print(str(sock))
-    while True:
-        try:
+    #while True:
+    #    try:
             # buffer size is 1024 bytes
-            data, addr = sock.recvfrom(1024)
-            print("DAFUQ")
-            msg = data.decode()
-            upd_msg = ("received message:" + msg)
-            print("addr" + str(addr))
-            print(upd_msg)
+    sock.setblocking(0)
+    timeout_in_seconds = 10
+    ready = select.select([sock], [], [], timeout_in_seconds)
+    if ready[0]:
+        data, addr = sock.recvfrom(1024)
+        msg = data.decode()
+        upd_msg = ("received message:" + msg)
+        print("addr" + str(addr))
+        print(upd_msg)
 
-        except socket.timeout:
-            pass
+  #      except socket.timeout:
+  #          pass
 
 
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##

@@ -8,11 +8,16 @@ Last Modified time: 2017-01-21 18:48:44
 import socket
 import argparse
 
+from GobalFunctions import get_current_time
+
 def create_sending_socket(host, port, msg):
     """ DocString """
+    currenttime = get_current_time()
+
+
     udp_ip = str(host)
     upd_port = int(port)
-    upd_msg = str(msg)
+    upd_msg = str(msg + ", Time:" + currenttime)
 
     #print("UDP target IP:", udp_ip)
     #print("UDP target port:", upd_port)
