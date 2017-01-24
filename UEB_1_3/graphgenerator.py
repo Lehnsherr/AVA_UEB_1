@@ -21,7 +21,7 @@ def generate_edge(node_1, random_n_count):
     entry = Subgraph(node_1, randint(1, random_n_count))
 
     #Wenn Kante auf den Knoten selbst zeigt
-    #entfernen und neue generieren
+    #entfernen/nicht verwenden und neue generieren
     if entry.node_1 == entry.node_2:
         return generate_edge(node_1, random_n_count)
 
@@ -44,6 +44,7 @@ def check_for_duplicates(edges, entries):
         schon in einer Liste vorhanden ist
     """
     for entry in entries:
+        # __eq__ funktion des Subgraph wird aufgerufen
         if entry == edges:
             return True
 
@@ -69,7 +70,7 @@ __parser__ = argparse.ArgumentParser(description="graphgen")
 __parser__.add_argument(
     "-n", "--nodeCount", type=int, required=True, help="Knotenzahl")
 __parser__.add_argument(
-    "-e", "--edgeCount", type=int, required=True, help="Kantenzahl")
+    "-m", "--edgeCount", type=int, required=True, help="Kantenzahl")
 __parser__.add_argument(
     "-f", "--filename", type=str, required=True, help="Ausgabedatei")
 

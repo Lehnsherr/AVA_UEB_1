@@ -54,11 +54,11 @@ def check_message_type(message):
               " Typ der empfangenen Nachricht nicht erkannt")
         return "Exit"
 
-
+"""
 def spread_rumor(message, neighbors, rumorcounter):
-    """
-        Verbreitet ein Geruecht unter den verbleibenden Knoten
-        """
+    
+        #Verbreitet ein Geruecht unter den verbleibenden Knoten
+        
     spreadrumor = False
     currenttime = get_current_time()
 
@@ -97,7 +97,7 @@ def spread_rumor(message, neighbors, rumorcounter):
                   " Error: Geruecht wird nicht mehr weiter verbreitet")
 
         return rumorcounter
-
+"""
 
 def get_message_type(message):
     """ return Typ einer uebergebenen Nachricht """

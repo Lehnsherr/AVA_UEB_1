@@ -7,19 +7,10 @@ Last Modified time: 2017-01-23 10:43:34
 
 #from message import Message
 from GobalFunctions import get_current_time
+
 """
-class MessageMenu:
-
 Nimmt die versendeten Nachrichten auf,
-testet ihren typ,
-und sendet sie entsprechend weiter
-
-
-    def __init__(self, neighbors, sender):
-        self.neighbors = neighbors
-        self.sender = sender
-        self.spreadrumor = False
-        self.rumorcounter = 0
+testet ihren typ
 """
 
 
@@ -53,51 +44,6 @@ def check_message_type(message):
         print("!!! " + str(currenttime) +
               " Typ der empfangenen Nachricht nicht erkannt")
         return "Exit"
-
-
-def spread_rumor(message, neighbors, rumorcounter):
-    """
-        Verbreitet ein Geruecht unter den verbleibenden Knoten
-        """
-    spreadrumor = False
-    currenttime = get_current_time()
-
-    rumorcounter += 1
-    #Wer labert den
-    print("-->" + str(currenttime) + " Geruecht erhalten von " +
-          get_message_sender(message))
-
-    for neighbor in neighbors:
-        print(neighbor.nid)
-        print("Message Sender " + get_message_sender(message))
-
-    #Wenn das Gerucht noch nicht bekannt
-    if not spreadrumor:
-        #Ist Sender Nachbar
-        sender = [
-            x for x in neighbors if x.nid == int(get_message_sender(message))
-        ]
-        print(sender)
-        if sender:
-            #Sender aus Liste entfernen
-            if sender[0] in neighbors:
-                neighbors.remove(sender[0])
-
-            #Wenn noch Nachbarn in Listevorhanden sind
-            #Weitere Geruchte versenden
-            if len(neighbors) >= 1:
-                #rumor = Message("app", "rumor", "Geruecht", self.sender[0])
-                #rumor.sendtoneighbornods(self.neighbors)
-
-                #Gerucht als bekannt ansehen
-                spreadrumor = True
-        #Wenn das Gerucht schon bekannt
-        else:
-            print("!!!" + str(currenttime) +
-                  " Error: Geruecht wird nicht mehr weiter verbreitet")
-
-        return rumorcounter
-
 
 def get_message_type(message):
     """ return Typ einer uebergebenen Nachricht """

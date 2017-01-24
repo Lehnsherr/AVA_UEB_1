@@ -11,12 +11,13 @@ import select
 
 from MessageMenu import check_message_type
 
+
 def create_receiving_socket(rec, sender):
     """ Docstring """
     msg = None
     udp_id, udp_ip, upd_port = rec.split(":")
     p_id, p_ip, p_port = sender.split(":")
- 
+
     sock = socket.socket(
         socket.AF_INET,  # Internet
         socket.SOCK_DGRAM)  # UDP
@@ -47,7 +48,8 @@ def create_receiving_socket(rec, sender):
 
         if message_type == "spreadRumor":
             #TODO spreadRumor
-            print("test test")
+            print("TODO spreadRumor")
+
 
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 # Kommandozeilen-Args
@@ -67,7 +69,6 @@ __parser__.add_argument(
     type=str,
     required=True,
     help="Knoten zu dem der gesendet hat ID:IP:Port")
-
 
 # Parsen der Kommandozeilen-Args
 if __name__ == '__main__':

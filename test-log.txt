@@ -1,0 +1,9 @@
+STDERR over:  python: can't open file 'overseer_rec_socket.py': [Errno 2] No such file or directory
+STDERR rec:  python: can't open file 'receiving_socket.py': [Errno 2] No such file or directory
+STDERR send:  python: can't open file 'sending_socket.py': [Errno 2] No such file or directory
+STDERR over:  python: can't open file 'overseer_rec_socket.py': [Errno 2] No such file or directory
+STDERR rec:  python: can't open file 'receiving_socket.py': [Errno 2] No such file or directory
+STDERR over:  python: can't open file 'overseer_rec_socket.py': [Errno 2] No such file or directory
+STDERR send:  python: can't open file 'sending_socket.py': [Errno 2] No such file or directory
+STDERR rec:  python: can't open file 'receiving_socket.py': [Errno 2] No such file or directory
+STDERR send:  python: can't open file 'sending_socket.py': [Errno 2] No such file or directory

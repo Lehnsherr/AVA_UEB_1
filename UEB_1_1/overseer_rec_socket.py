@@ -17,13 +17,10 @@ def overseer_rec_socket(recevier):
         socket.AF_INET,  # Internet
         socket.SOCK_DGRAM)  # UDP
     #sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    #print(udp_ip)
-    #print(upd_port)
+
     sock.bind((rec_ip, int(rec_port)))
     #print(str(sock))
-    #while True:
-    #    try:
-            # buffer size is 1024 bytes
+
     sock.setblocking(0)
     timeout_in_seconds = 10
     ready = select.select([sock], [], [], timeout_in_seconds)
@@ -33,9 +30,6 @@ def overseer_rec_socket(recevier):
         upd_msg = ("received message:" + msg)
         print("addr" + str(addr))
         print(upd_msg)
-
-  #      except socket.timeout:
-  #          pass
 
 
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
@@ -50,14 +44,7 @@ __parser__.add_argument(
     type=str,
     required=True,
     help="Host: zu verbindende IP Addresse")
-"""
-__parser__.add_argument(
-    "-port",
-    "--port",
-    type=str,
-    required=True,
-    help="Port: zu verbindender Port der IP")
-"""
+
 # Parsen der Kommandozeilen-Args
 if __name__ == '__main__':
     #print("!!! ___ create_overseer_rec_socket ___ !!!")

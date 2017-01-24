@@ -146,38 +146,41 @@ def stream_watcher(identifier, stream):
 
 
 def printer():
-    """ doc string printer """
+    """
+    Printer wird am Ende des Programmes gestartet
+    gibt abgezweigten STDOUTS/STDERRS aus
+    startet zudem log Funktionen
+    """
     #print("printer started")
     while True:
         try:
             # Block for 1 second.
             item = __que__.get(True, 1)
         except Empty:
-            # No output in either streams for a second. Are we done?
+            # Wenn kein output in den streams mehr vorhanden ist
             print("printer Empty")
-            #if __proc_overseersock_sock__.poll() is not None:
-            #break
-            #if proc_rec_neigbor_sock.poll() is not None:
-            #    break
-            #if proc_rec_neigbor_sock.poll() is not None:
-            #    break
+            exit(1)
         else:
             identifier, line = item
             print(str(identifier) + ': ' + str(line.decode()))
             append_to_file("test-log.txt", item)
-            output_to_graphviz("graphiz.txt", identifier, line)
+            output_to_graphviz("graphiz.dot", identifier, line)
 
 
 def output_to_graphviz(filename, identifier, line):
-    """ Docstring """
-    #print("Test")
+    """
+    Zur Abwandlung in eine Graphviz Datei
+    Alle vom empfangenen Nachrichten werden aus
+    der Queue genommen und verarbeitet
+    """
+
     if "ERR" not in identifier:
-        #print("Test2")
+
         if "rec" in identifier:
             strline = line.decode()
 
             if "received message:" in strline:
-                print("Test3")
+
                 sender = get_message_sender(strline)
                 text = get_message_text(strline)
                 with open(filename, 'a') as txtfile:
@@ -232,7 +235,7 @@ def open_subprocess(socketstype, rec, sender=None, msg="None"):
             (str(rec.nid) + ":" + rec.host + ":" + str(rec.port))
         ]
     else:
-        print("Alles KAPOTT")
+        print("Sollte nicht passieren")
 
     __out_prefix__ = "STDOUT " + socketstype + ': '
     __err_prefix__ = "STDERR " + socketstype + ': '
@@ -289,11 +292,11 @@ __parser__.add_argument(
     type=int,
     required=False,
     default=1,
-    help="Größe der maximalenm Gruechte-Grenzte")
+    help="Größe der maximalenm Gruechte-Grenze")
 
 if __name__ == '__main__':
-    clear_log_file("test-log.txt")
-    clear_log_file("graphiz.txt")
+    clear_log_file("C:/AVA_Dev/AVA_UEB_1/UEB_1_1/test-log.txt")
+    clear_log_file("C:/AVA_Dev/AVA_UEB_1/UEB_1_1/graphiz.dot")
 
     # Parsen der Kommandozeilen-Args
     __args__ = __parser__.parse_args()
